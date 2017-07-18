@@ -19,7 +19,7 @@
 #define PLAYER2 2
 #define CPU 2
 
-//optional** allow player to enter username
+//optional** allow players to enter usernames
 
 int gameChoice();
 void clearGrid(int grid[NUMROWS][NUMCOLS]);
@@ -30,8 +30,10 @@ int checkHorizontal(int grid[NUMROWS][NUMCOLS], int row, int column);
 int checkVertical(int grid[NUMROWS][NUMCOLS], int row, int column);
 int checkDiagonal(int grid[NUMROWS][NUMCOLS], int row, int column);
 int isFull(int grid[NUMROWS][NUMCOLS]);
+void endMessage(int score[]);
 
 int main(void){
+    
     //scores set to 0 initially
     int currentPlayer = 1;
     int score[2] = {0,0};
@@ -48,23 +50,16 @@ int main(void){
     if(choice == 1){
         printGrid(grid);
         while(!isFull(grid)){
-            singlePlay(grid, currentPlayer, score);
-            if(currentPlayer ==1){
+            while(singlePlay(grid, currentPlayer, score)){
+            }
+            if(currentPlayer == 1){
                 currentPlayer++;
             }
             else{
                 currentPlayer--;
             }
         }
-        printf("The final scores are %d vs %d.\n", score[0], score[1]);
-        if(score[0]>score[1]){
-            printf("Congrats player 1!\n");
-            printf("Better luck next time player 2!\n");
-        }
-        else{
-            printf("Congrats player 2!\n");
-            printf("Better luck next time player 1!\n");
-        }
+        endMessage(score);
     }
     
     else if(choice == 2){
@@ -78,7 +73,10 @@ int main(void){
     return 0;
 }
 
-//returns user's choice of game
+/* purpose: asks the player whether they would like to play against another friend or the computer
+ * output: - 1, if player would like to play against a friend
+ *         - 2, if player would like to play against the computer
+ */
 int gameChoice(){
     int choice;
     printf("Would you like to play against a friend (select 1) or the computer (select 2)?\n");
@@ -87,7 +85,9 @@ int gameChoice(){
     return choice;
 }
 
-//clears the grid
+/* purpose: clears the grid
+ * parameter: the 2D array representing the grid
+ */
 void clearGrid(int grid[NUMROWS][NUMCOLS]){
     int row, column;
     for(row = 0; row < NUMROWS; row++){
@@ -97,7 +97,9 @@ void clearGrid(int grid[NUMROWS][NUMCOLS]){
     }
 }
 
-//prints the grid for the game
+/* purpose: prints the grid for the game
+ * parameter: the 2D array representing the grid
+ */
 void printGrid(int grid[NUMROWS][NUMCOLS]){
     int row, column;
     printf("\n");
@@ -142,7 +144,15 @@ void printGrid(int grid[NUMROWS][NUMCOLS]){
 }
 
 
-//runs a single move
+
+/* purpose: runs a single human move
+ * parameters: - the 2D array representing the grid
+ *             - the player whose turn it is
+ *             - the array containing the two players' scores
+ * returns: whether the player scored any points
+ *          - 1 = scored points
+ *          - 0 = no points
+ */
 int singlePlay(int grid[NUMROWS][NUMCOLS], int player, int score[]){
     int row, column, letter, wins;
     printf("Player %d, it's your turn!\n\n", player);
@@ -156,8 +166,19 @@ int singlePlay(int grid[NUMROWS][NUMCOLS], int player, int score[]){
     printf("Enter 1 for S or 2 for O:");
     scanf("%d", &letter);
     
-    if(grid[row-1][column-1]!=0){
-        printf("Warning: Please select an empty slot.\n");
+    //ensures that the chosen slot is empty and within the the array, and that S or O was selected
+    while(grid[row-1][column-1]!=0 || (letter!=1 && letter !=2) || row>NUMROWS || column>NUMCOLS){
+        printf("\n");
+        if(grid[row-1][column-1]!=0){
+            printf("ERROR: Please select an empty slot.\n");
+        }
+        if(letter!=1 && letter !=2){
+            printf("ERROR: Please enter the appropriate number representing your chosen letter.\n");
+        }
+        if(row>NUMROWS || column>NUMCOLS){
+            printf("ERROR: Selected position is out of bounds.\n");
+        }
+        printf("\n");
         printf("Please choose the row number and column number you would like to place your letter in.\n");
         printf("Row:");
         scanf("%d", &row);
@@ -167,6 +188,7 @@ int singlePlay(int grid[NUMROWS][NUMCOLS], int player, int score[]){
         printf("Enter 1 for S or 2 for O:");
         scanf("%d", &letter);
     }
+
     grid[row-1][column-1] = letter;
     
     printGrid(grid);
@@ -176,10 +198,17 @@ int singlePlay(int grid[NUMROWS][NUMCOLS], int player, int score[]){
     score[player-1]+=wins;
     printf("Player 1: %d points\nPlayer 2: %d points\n\n", score[0], score[1]);
     
+    if (wins > 0){
+        return 1;
+    }
     return 0;
 }
 
-//checks the grid for a new SOS
+/* purpose: checks the grid for a new SOS
+ * parameters: - the 2D array representing the grid
+ *             - the row and column in which the new letter is placed
+ * output: the number of total wins as a result of the player's move
+ */
 int checkGrid(int grid[NUMROWS][NUMCOLS], int row, int column){
     int wins = 0;
     wins+=checkHorizontal(grid, row, column);
@@ -187,7 +216,12 @@ int checkGrid(int grid[NUMROWS][NUMCOLS], int row, int column){
     wins+=checkDiagonal(grid, row, column);
     return wins;
 }
-//checks for a new horizontal SOS
+
+/* purpose: checks for a new horizontal SOS
+ * parameters: - the 2D array representing the grid
+ *             - the row and column in which the new letter is placed
+ * output: the number of horizontal wins as a result of the player's move
+ */
 int checkHorizontal(int grid[NUMROWS][NUMCOLS], int row, int column){
     int wins = 0;
     row--;
@@ -212,7 +246,12 @@ int checkHorizontal(int grid[NUMROWS][NUMCOLS], int row, int column){
     }
     return wins;
 }
-//checks for a new vertical SOS
+
+/* purpose: checks for a new vertical SOS
+ * parameters: - the 2D array representing the grid
+ *             - the row and column in which the new letter is placed
+ * output: the number of vertical wins as a result of the player's move
+ */
 int checkVertical(int grid[NUMROWS][NUMCOLS], int row, int column){
     int wins = 0;
     row--;
@@ -237,7 +276,12 @@ int checkVertical(int grid[NUMROWS][NUMCOLS], int row, int column){
     }
     return wins;
 }
-//checks for a new diagonal SOS
+
+/* purpose: checks for a new diagonal SOS
+ * parameters: - the 2D array representing the grid
+ *             - the row and column in which the new letter is placed
+ * output: the number of diagonal wins as a result of the player's move
+ */
 int checkDiagonal(int grid[NUMROWS][NUMCOLS], int row, int column){
     int wins = 0;
     row--;
@@ -270,7 +314,11 @@ int checkDiagonal(int grid[NUMROWS][NUMCOLS], int row, int column){
     return wins;
 }
 
-//checks if the grid is full
+/* purpose: checks if the grid is full
+ * parameter: the 2D array representing the grid
+ * outputs: - 0 = not full
+ *          - 1 = full
+ */
 int isFull(int grid[NUMROWS][NUMCOLS]){
     int row, column;
     for(row = 0; row<NUMROWS; row++){
@@ -281,4 +329,19 @@ int isFull(int grid[NUMROWS][NUMCOLS]){
         }
     }
     return 1;
+}
+
+/* purpose: displays a message at the end of the game, depending on the winner of the game
+ * parameters:
+ */
+void endMessage(int score[]){
+ printf("The final scores are %d vs %d.\n", score[0], score[1]);
+ if(score[0]>score[1]){
+ printf("Congrats player 1!\n");
+ printf("Better luck next time player 2!\n");
+ }
+ else{
+ printf("Congrats player 2!\n");
+ printf("Better luck next time player 1!\n");
+ }
 }
